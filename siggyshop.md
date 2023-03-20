@@ -1,3 +1,3 @@
 layout: page
-title: "Siggy Shop"
+title: "siggy shop"
 permalink: /siggyshop
