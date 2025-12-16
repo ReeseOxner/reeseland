@@ -1,1 +1,33 @@
-<iframe src="https://script.google.com/macros/s/AKfycbwcVAGcIP2g2zg9prQbjYl3M8KKoL8iYhG25bwnSOQa0ZK1nvMw-gv8NtyjZpu9mgQkVQ/exec" style="height:100%; width:100%;">
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .iframe-wrap {
+    position: fixed;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  iframe {
+    display: block;        /* removes inline gap */
+    border: 0;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+  }
+</style>
+
+<div class="iframe-wrap">
+  <iframe
+    src="https://script.google.com/macros/s/AKfycbwcVAGcIP2g2zg9prQbjYl3M8KKoL8iYhG25bwnSOQa0ZK1nvMw-gv8NtyjZpu9mgQkVQ/exec"
+    scrolling="no"
+    allowfullscreen
+  ></iframe>
+</div>
