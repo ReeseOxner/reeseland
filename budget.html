@@ -1,33 +1,70 @@
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-  }
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
-  .iframe-wrap {
-    position: fixed;
-    inset: 0;
-    margin: 0;
-    padding: 0;
-  }
+  <title>Daily Budget</title>
+  <meta name="theme-color" content="#0b0c10" />
 
-  iframe {
-    display: block;        /* removes inline gap */
-    border: 0;
-    width: 100vw;
-    height: 100vh;
-    margin: 0;
-    padding: 0;
-  }
-</style>
+  <!-- iOS "web app" -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Daily Budget" />
 
-<div class="iframe-wrap">
-  <iframe
-    src="https://script.google.com/macros/s/AKfycbzEVXWQdpg6QLuImqGKdbTjmmY7cYRJFdlCMeRfcNovIqmtIWZ0iSIKfgfU69jECfhXKA/exec"
-    scrolling="no"
-    allowfullscreen
-  ></iframe>
-</div>
+  <!-- Icons -->
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon-180.png" />
+  <link rel="icon" href="./icons/icon-192.png" sizes="192x192" />
+  <link rel="icon" href="./icons/icon-512.png" sizes="512x512" />
+
+  <!-- PWA manifest -->
+  <link rel="manifest" href="./manifest.webmanifest" />
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: #0b0c10;
+    }
+
+    .iframe-wrap {
+      position: fixed;
+      inset: 0;
+      margin: 0;
+      padding: 0;
+    }
+
+    iframe {
+      display: block;
+      border: 0;
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="iframe-wrap">
+    <iframe
+      src="https://script.google.com/macros/s/AKfycbzEVXWQdpg6QLuImqGKdbTjmmY7cYRJFdlCMeRfcNovIqmtIWZ0iSIKfgfU69jECfhXKA/exec"
+      referrerpolicy="no-referrer"
+      allow="clipboard-read; clipboard-write"
+      allowfullscreen
+    ></iframe>
+  </div>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
