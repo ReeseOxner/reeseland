@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Slate Bullet Generator</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Verdana, Geneva, sans-serif; background: #f4f4f4; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 32px 16px; }
+  .slate-app { background: #fff; width: 100%; max-width: 1100px; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.10); }
+  .slate-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #2c0022; }
+  .slate-wordmark img { height: 30px; width: auto; display: block; }
+  .slate-tool-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.5); line-height: 1.3; text-align: right; }
+  .wrap { display: flex; gap: 16px; padding: 20px; height: 580px; }
+  .panel { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+  .panel-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #6a0432; margin-bottom: 6px; }
+  .toolbar { display: flex; align-items: center; gap: 2px; padding: 5px 8px; background: #2c0022; border-radius: 4px 4px 0 0; }
+  .tb-btn { display: flex; align-items: center; justify-content: center; min-width: 30px; height: 26px; padding: 0 6px; border: 1px solid transparent; border-radius: 3px; background: none; cursor: pointer; color: rgba(255,255,255,0.7); font-family: Verdana, Geneva, sans-serif; font-size: 12px; font-weight: 700; transition: background 0.12s, color 0.12s; }
+  .tb-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .tb-btn.active { background: #ff0e50; color: #fff; }
+  .tb-btn i { font-size: 14px; }
+  .tb-shortcut { font-size: 9px; font-weight: 400; opacity: 0.6; margin-left: 2px; }
+  .tb-sep { width: 1px; background: rgba(255,255,255,0.15); margin: 3px 4px; align-self: stretch; }
+  .link-row { display: none; align-items: center; gap: 6px; padding: 5px 8px; background: #6a0432; }
+  .link-row.visible { display: flex; }
+  .link-row input { flex: 1; font-size: 12px; font-family: monospace; border: 1px solid rgba(255,255,255,0.25); border-radius: 3px; padding: 3px 8px; background: rgba(255,255,255,0.1); color: #fff; outline: none; }
+  .link-row input::placeholder { color: rgba(255,255,255,0.4); }
+  .link-row input:focus { border-color: #ff0e50; }
+  .link-apply { padding: 3px 12px; font-size: 11px; font-weight: 700; border: none; border-radius: 3px; background: #ff0e50; color: #fff; cursor: pointer; font-family: Verdana, Geneva, sans-serif; }
+  .link-apply:hover { background: #e00045; }
+  .link-cancel { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; }
+  .bullet-editor { flex: 1; overflow-y: auto; border: 1px solid #d0d0d0; border-top: none; border-radius: 0 0 4px 4px; padding: 14px; background: #fff; cursor: text; }
+  .bullet-item { display: flex; align-items: flex-start; gap: 10px; min-height: 28px; margin-bottom: 10px; }
+  .bullet-item:last-child { margin-bottom: 0; }
+  .bullet-icon { flex-shrink: 0; width: 24px; padding-top: 3px; display: flex; align-items: flex-start; }
+  .bullet-icon img { width: 12px; height: auto; display: block; }
+  .bullet-text { flex: 1; font-size: 14px; color: #111; font-family: Verdana, Geneva, sans-serif; line-height: 1.5; outline: none; min-height: 21px; word-break: break-word; }
+  .bullet-text:empty::before { content: attr(data-placeholder); color: #bbb; pointer-events: none; }
+  .bullet-text a { color: #ff0e50; text-decoration: underline; }
+  .bullet-text strong { font-weight: 700; }
+  .bullet-text em { font-style: italic; }
+  .bullet-text u { text-decoration: underline; }
+  .code-panel-inner { flex: 1; display: flex; flex-direction: column; }
+  textarea#html-out { flex: 1; resize: none; border: 1px solid #d0d0d0; border-radius: 4px; padding: 12px 14px; background: #f8f8f8; font-family: monospace; font-size: 11px; color: #444; line-height: 1.65; outline: none; }
+  .copy-btn { margin-top: 8px; align-self: flex-end; padding: 7px 18px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border: none; border-radius: 3px; background: #2c0022; color: #fff; cursor: pointer; font-family: Verdana, Geneva, sans-serif; display: flex; align-items: center; gap: 7px; transition: background 0.12s; }
+  .copy-btn:hover { background: #6a0432; }
+  .copy-btn.copied { background: #1a7a4a; }
+  .hint { font-size: 10px; color: #888; margin-top: 7px; line-height: 1.6; }
+  .hint kbd { font-size: 9px; background: #e8e8e8; color: #444; border: 1px solid #d0d0d0; border-radius: 2px; padding: 1px 4px; font-family: monospace; }
+</style>
+</head>
+<body>
+<div class="slate-app">
+  <div class="slate-header">
+    <div class="slate-wordmark">
+      <img src="https://brand.slate.com/images/logos/slate_white.svg" alt="Slate"
+           onerror="this.src='https://compote.slate.com/images/05823f53-33f9-49a9-a249-6a8aa7b7d4f9.png?crop=2423%2C1615%2Cx332%2Cy278&width=1600'" />
+    </div>
+    <div class="slate-tool-label">Bullet<br>Generator</div>
+  </div>
+
+  <div class="wrap">
+    <div class="panel">
+      <div class="panel-label">Bullet points</div>
+      <div class="toolbar" id="toolbar">
+        <button class="tb-btn" id="btn-bold" title="Bold (⌘B)" onclick="fmt('bold')">B<span class="tb-shortcut">⌘B</span></button>
+        <button class="tb-btn" id="btn-italic" title="Italic (⌘I)" onclick="fmt('italic')"><em>I</em><span class="tb-shortcut">⌘I</span></button>
+        <button class="tb-btn" id="btn-underline" title="Underline (⌘U)" onclick="fmt('underline')"><u>U</u><span class="tb-shortcut">⌘U</span></button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn" id="btn-link" title="Insert link (⌘K)" onclick="toggleLinkRow()"><i class="ti ti-link"></i><span class="tb-shortcut">⌘K</span></button>
+        <button class="tb-btn" id="btn-unlink" title="Remove link" onclick="removeLink()" style="display:none"><i class="ti ti-link-off"></i></button>
+      </div>
+      <div class="link-row" id="link-row">
+        <i class="ti ti-link" style="font-size:14px;color:rgba(255,255,255,0.6)"></i>
+        <input type="url" id="link-url" placeholder="https://slate.com/article…" />
+        <button class="link-apply" onclick="applyLink()">Apply</button>
+        <button class="link-cancel" onclick="closeLinkRow()">✕</button>
+      </div>
+      <div class="bullet-editor" id="editor" onclick="editorClick(event)">
+        <div class="bullet-item">
+          <div class="bullet-icon">
+            <img src="https://media.sailthru.com/fss/ehlu0k/34cd9f2b-2109-4554-b354-4620ee86263c/Vector+%28Stroke%29+%281%29.png" width="12" alt="" onerror="this.replaceWith(makeFallback())" />
+          </div>
+          <div class="bullet-text" contenteditable="true" data-placeholder="Type here, or paste paragraphs to create bullets instantly…" spellcheck="true"></div>
+        </div>
+      </div>
+      <div class="hint">
+        <kbd>Enter</kbd> new bullet &nbsp;·&nbsp;
+        <kbd>⌘B</kbd> bold &nbsp;·&nbsp; <kbd>⌘I</kbd> italic &nbsp;·&nbsp; <kbd>⌘U</kbd> underline &nbsp;·&nbsp;
+        <kbd>⌘K</kbd> link &nbsp;·&nbsp;
+        Paste paragraphs → instant bullets &nbsp;·&nbsp; Select text + paste URL = link
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">HTML output</div>
+      <div class="code-panel-inner">
+        <textarea id="html-out" readonly spellcheck="false"></textarea>
+        <button class="copy-btn" id="copy-btn" onclick="copyHTML()">
+          <i class="ti ti-copy"></i> Copy HTML
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BULLET_IMG_SRC = 'https://media.sailthru.com/fss/ehlu0k/34cd9f2b-2109-4554-b354-4620ee86263c/Vector+%28Stroke%29+%281%29.png';
+const PARA_DELIM = '\x01\x01';
+const BLOCK_TAGS = new Set(['p','div','li','h1','h2','h3','h4','h5','h6','blockquote','td','th','dt','dd','section','article','tr','pre']);
+const SKIP_TAGS = new Set(['meta','style','script','link','head','title']);
+
+function makeFallback() {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', '12'); svg.setAttribute('height', '14');
+  svg.setAttribute('viewBox', '0 0 12 14'); svg.setAttribute('fill', 'none');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M2 2L8 7L2 12');
+  path.setAttribute('stroke', '#ff0e50'); path.setAttribute('stroke-width', '2.2');
+  path.setAttribute('stroke-linecap', 'round'); path.setAttribute('stroke-linejoin', 'round');
+  svg.appendChild(path);
+  return svg;
+}
+
+function makeBulletItem(htmlContent) {
+  const item = document.createElement('div');
+  item.className = 'bullet-item';
+  const icon = document.createElement('div');
+  icon.className = 'bullet-icon';
+  const img = document.createElement('img');
+  img.src = BULLET_IMG_SRC; img.width = 12; img.alt = '';
+  img.onerror = function() { this.replaceWith(makeFallback()); };
+  icon.appendChild(img);
+  const t = document.createElement('div');
+  t.className = 'bullet-text';
+  t.contentEditable = 'true';
+  t.dataset.placeholder = 'Type bullet text here…';
+  t.spellcheck = true;
+  if (htmlContent) t.innerHTML = htmlContent;
+  item.appendChild(icon);
+  item.appendChild(t);
+  return { item, t };
+}
+
+// Convert a node to sanitized inline HTML — bold, italic, underline, links only.
+// Handles style-based formatting (Google Docs uses spans with inline styles).
+function sanitizeInline(node) {
+  if (node.nodeType === Node.TEXT_NODE) return node.textContent;
+  if (node.nodeType !== Node.ELEMENT_NODE) return '';
+  const tag = node.tagName.toLowerCase();
+  if (SKIP_TAGS.has(tag)) return '';
+  const kids = Array.from(node.childNodes).map(sanitizeInline).join('');
+  if (tag === 'a') {
+    const href = node.getAttribute('href') || '';
+    if (href && !href.startsWith('javascript')) {
+      return `<a href="${href}" style="color:#ff0e50;text-decoration:underline;">${kids}</a>`;
+    }
+    return kids;
+  }
+  if (tag === 'strong') return kids ? `<strong>${kids}</strong>` : '';
+  if (tag === 'em') return kids ? `<em>${kids}</em>` : '';
+  if (tag === 'u') return kids ? `<u>${kids}</u>` : '';
+  if (tag === 'b') {
+    // Google Docs wraps everything in <b style="font-weight:normal"> — ignore that
+    const fw = node.style.fontWeight;
+    if (fw === 'normal' || fw === '400') return kids;
+    return kids ? `<strong>${kids}</strong>` : '';
+  }
+  if (tag === 'i') {
+    const fs = node.style.fontStyle;
+    if (fs === 'normal') return kids;
+    return kids ? `<em>${kids}</em>` : '';
+  }
+  if (tag === 'span') {
+    let out = kids;
+    const fw = node.style.fontWeight;
+    const fs = node.style.fontStyle;
+    const td = node.style.textDecoration;
+    if (fw && (fw === 'bold' || parseInt(fw) >= 600)) out = `<strong>${out}</strong>`;
+    if (fs === 'italic') out = `<em>${out}</em>`;
+    if (td && td.includes('underline')) out = `<u>${out}</u>`;
+    return out;
+  }
+  if (tag === 'br') return '';
+  return kids;
+}
+
+// Walk any node: block elements emit a paragraph delimiter after their content;
+// elements that wrap blocks (like Google Docs' <b> container) are recursed into transparently;
+// pure inline elements are sanitized for formatting.
+function nodeToDelimited(node) {
+  if (node.nodeType === Node.TEXT_NODE) return node.textContent;
+  if (node.nodeType !== Node.ELEMENT_NODE) return '';
+  const tag = node.tagName.toLowerCase();
+  if (SKIP_TAGS.has(tag)) return '';
+
+  const blockChildren = Array.from(node.children).filter(c => BLOCK_TAGS.has(c.tagName.toLowerCase()));
+
+  if (BLOCK_TAGS.has(tag)) {
+    if (blockChildren.length > 0) {
+      // Container block (e.g. <div> wrapping <p> tags) — recurse, no own delimiter
+      return Array.from(node.childNodes).map(nodeToDelimited).join('');
+    } else {
+      // Leaf block — extract inline content and emit delimiter
+      const content = sanitizeInline(node).trim();
+      return content ? content + PARA_DELIM : PARA_DELIM;
+    }
+  }
+
+  // Not a block tag. If it wraps block children (e.g. Google Docs <b> wrapper), recurse.
+  if (blockChildren.length > 0) {
+    return Array.from(node.childNodes).map(nodeToDelimited).join('');
+  }
+
+  // Pure inline element — sanitize formatting
+  return sanitizeInline(node);
+}
+
+function extractParagraphsFromHTML(htmlStr) {
+  const doc = new DOMParser().parseFromString(htmlStr, 'text/html');
+  const raw = Array.from(doc.body.childNodes).map(nodeToDelimited).join('');
+  return raw.split(PARA_DELIM).map(s => s.trim()).filter(s => s.length > 0);
+}
+
+let savedRange = null;
+function isUrl(s) { return /^https?:\/\//i.test(s) || /^www\./i.test(s); }
+function normalizeUrl(s) { return /^https?:\/\//i.test(s.trim()) ? s.trim() : 'https://' + s.trim(); }
+function saveRange() { const sel = window.getSelection(); if (sel && sel.rangeCount > 0) savedRange = sel.getRangeAt(0).cloneRange(); }
+function restoreRange() { if (!savedRange) return; const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
+
+function fmt(cmd) { document.execCommand(cmd, false, null); generateHTML(); updateToolbarState(); }
+
+function updateToolbarState() {
+  document.getElementById('btn-bold').classList.toggle('active', document.queryCommandState('bold'));
+  document.getElementById('btn-italic').classList.toggle('active', document.queryCommandState('italic'));
+  document.getElementById('btn-underline').classList.toggle('active', document.queryCommandState('underline'));
+  const inLink = !!getSelectedAnchor();
+  document.getElementById('btn-link').style.display = inLink ? 'none' : '';
+  document.getElementById('btn-unlink').style.display = inLink ? '' : 'none';
+}
+
+function getSelectedAnchor() {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return null;
+  let node = sel.anchorNode;
+  while (node && node !== document) { if (node.nodeName === 'A') return node; node = node.parentNode; }
+  return null;
+}
+
+function toggleLinkRow() {
+  const row = document.getElementById('link-row');
+  const input = document.getElementById('link-url');
+  if (row.classList.contains('visible')) { closeLinkRow(); return; }
+  saveRange();
+  input.value = getSelectedAnchor() ? getSelectedAnchor().href : '';
+  row.classList.add('visible');
+  setTimeout(() => { input.focus(); input.select(); }, 30);
+}
+function closeLinkRow() { document.getElementById('link-row').classList.remove('visible'); document.getElementById('link-url').value = ''; restoreRange(); }
+function applyLink() {
+  const url = document.getElementById('link-url').value.trim();
+  if (!url) { closeLinkRow(); return; }
+  restoreRange();
+  const anchor = getSelectedAnchor();
+  const sel = window.getSelection();
+  if (anchor) { anchor.href = normalizeUrl(url); anchor.style.color = '#ff0e50'; anchor.style.textDecoration = 'underline'; }
+  else if (sel && !sel.isCollapsed) {
+    document.execCommand('createLink', false, normalizeUrl(url));
+    const a = getSelectedAnchor();
+    if (a) { a.style.color = '#ff0e50'; a.style.textDecoration = 'underline'; }
+  }
+  closeLinkRow(); generateHTML();
+}
+function removeLink() { document.execCommand('unlink', false, null); updateToolbarState(); generateHTML(); }
+
+function serializeNode(node) {
+  if (node.nodeType === Node.TEXT_NODE) return node.textContent.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  if (node.nodeType !== Node.ELEMENT_NODE) return '';
+  const tag = node.tagName.toLowerCase();
+  const kids = Array.from(node.childNodes).map(serializeNode).join('');
+  if (tag === 'br') return '';
+  if (tag === 'a') return `<a href="${node.getAttribute('href')||'#'}" style="color: #ff0e50; text-decoration: underline;">${kids}</a>`;
+  if (tag === 'strong' || tag === 'b') return `<strong>${kids}</strong>`;
+  if (tag === 'em' || tag === 'i') return `<em>${kids}</em>`;
+  if (tag === 'u') return `<u>${kids}</u>`;
+  if (tag === 'span') {
+    let out = kids;
+    const fw = node.style.fontWeight, fs = node.style.fontStyle, td = node.style.textDecoration;
+    if (fw === 'bold' || parseInt(fw) >= 600) out = `<strong>${out}</strong>`;
+    if (fs === 'italic') out = `<em>${out}</em>`;
+    if (td && td.includes('underline')) out = `<u>${out}</u>`;
+    return out;
+  }
+  if (tag === 'div' || tag === 'p') return kids;
+  return kids;
+}
+
+function buildTable(innerHtml) {
+  return `  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: Verdana, Geneva, sans-serif; margin-bottom: 20px;">
+    <tr>
+      <td width="24" valign="top" style="font-size: 15px; font-weight: 700; color: #111; padding-top: 2px; text-align: left;"><img src="${BULLET_IMG_SRC}" width="12px" /></td>
+      <td style="font-size: 14px; color: #111; line-height: 1.5; text-align: left;">
+        ${innerHtml}
+      </td>
+    </tr>
+  </table>`;
+}
+
+function generateHTML() {
+  const tables = [];
+  document.querySelectorAll('.bullet-text').forEach(item => {
+    const text = item.innerText || item.textContent || '';
+    if (!text.trim()) return;
+    const inner = Array.from(item.childNodes).map(serializeNode).join('').trim();
+    if (inner) tables.push(buildTable(inner));
+  });
+  document.getElementById('html-out').value = tables.length
+    ? `<div style="padding: 0 10px;">\n${tables.join('\n\n')}\n</div>` : '';
+}
+
+function insertParagraphsAsBullets(paragraphs, targetEl) {
+  const currentItem = targetEl.closest('.bullet-item');
+  const isEmpty = !(targetEl.innerText || targetEl.textContent || '').trim();
+  let insertAfter = currentItem;
+  paragraphs.forEach((para, i) => {
+    if (i === 0 && isEmpty) { targetEl.innerHTML = para; }
+    else {
+      const { item, t } = makeBulletItem(para);
+      insertAfter.parentNode.insertBefore(item, insertAfter.nextSibling);
+      setupBullet(t);
+      insertAfter = item;
+    }
+  });
+  const lastText = insertAfter.querySelector('.bullet-text');
+  if (lastText) { lastText.focus(); placeCursorAtEnd(lastText); }
+  generateHTML();
+}
+
+function addBullet(afterEl) {
+  const { item, t } = makeBulletItem();
+  afterEl.parentNode.insertBefore(item, afterEl.nextSibling);
+  setupBullet(t); t.focus(); generateHTML();
+}
+
+function removeBullet(item) {
+  if (document.querySelectorAll('.bullet-item').length <= 1) return;
+  const prev = item.previousElementSibling, next = item.nextElementSibling;
+  item.remove();
+  const target = prev || next;
+  if (target) { const t = target.querySelector('.bullet-text'); if (t) { t.focus(); placeCursorAtEnd(t); } }
+  generateHTML();
+}
+
+function placeCursorAtEnd(el) {
+  const range = document.createRange(), sel = window.getSelection();
+  range.selectNodeContents(el); range.collapse(false);
+  sel.removeAllRanges(); sel.addRange(range);
+}
+
+function editorClick(e) {
+  if (e.target === document.getElementById('editor')) {
+    const last = document.querySelector('.bullet-item:last-child .bullet-text');
+    if (last) { last.focus(); placeCursorAtEnd(last); }
+  }
+}
+
+function setupBullet(el) {
+  el.addEventListener('input', generateHTML);
+  el.addEventListener('keyup', updateToolbarState);
+  el.addEventListener('mouseup', updateToolbarState);
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); addBullet(el.closest('.bullet-item')); }
+    else if (e.key === 'Backspace' && !(el.innerText || el.textContent || '').trim()) { e.preventDefault(); removeBullet(el.closest('.bullet-item')); }
+    else if ((e.metaKey || e.ctrlKey) && e.key === 'b') { e.preventDefault(); fmt('bold'); }
+    else if ((e.metaKey || e.ctrlKey) && e.key === 'i') { e.preventDefault(); fmt('italic'); }
+    else if ((e.metaKey || e.ctrlKey) && e.key === 'u') { e.preventDefault(); fmt('underline'); }
+    else if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); toggleLinkRow(); }
+  });
+
+  el.addEventListener('paste', e => {
+    e.preventDefault();
+    const htmlData = e.clipboardData.getData('text/html');
+    const plainData = e.clipboardData.getData('text/plain');
+    const trimmedPlain = plainData.trim();
+
+    // URL paste on selection → create link
+    if (isUrl(trimmedPlain)) {
+      const sel = window.getSelection();
+      if (sel && !sel.isCollapsed && sel.anchorNode && el.contains(sel.anchorNode)) {
+        document.execCommand('createLink', false, normalizeUrl(trimmedPlain));
+        const a = getSelectedAnchor();
+        if (a) { a.style.color = '#ff0e50'; a.style.textDecoration = 'underline'; }
+        generateHTML(); return;
+      }
+    }
+
+    // Try HTML path first — handles formatting AND paragraph splitting
+    if (htmlData) {
+      const paragraphs = extractParagraphsFromHTML(htmlData);
+      if (paragraphs.length > 1) {
+        insertParagraphsAsBullets(paragraphs, el); return;
+      }
+      if (paragraphs.length === 1) {
+        // Single formatted paragraph — insert inline
+        document.execCommand('insertHTML', false, paragraphs[0]);
+        generateHTML(); return;
+      }
+    }
+
+    // Plain text fallback — split on double newlines
+    const plainParas = trimmedPlain.split(/\n\s*\n/).map(p => p.replace(/\n/g,' ').trim()).filter(Boolean);
+    if (plainParas.length > 1) {
+      insertParagraphsAsBullets(plainParas, el); return;
+    }
+    document.execCommand('insertText', false, trimmedPlain);
+    generateHTML();
+  });
+}
+
+document.querySelectorAll('.bullet-text').forEach(setupBullet);
+document.getElementById('link-url').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); applyLink(); }
+  if (e.key === 'Escape') { closeLinkRow(); }
+});
+
+function copyHTML() {
+  const val = document.getElementById('html-out').value;
+  if (!val) return;
+  navigator.clipboard.writeText(val).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.classList.add('copied');
+    btn.innerHTML = '<i class="ti ti-copy"></i> Copied!';
+    setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '<i class="ti ti-copy"></i> Copy HTML'; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
