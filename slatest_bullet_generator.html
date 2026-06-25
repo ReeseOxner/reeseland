@@ -1,20 +1,40 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Slate Bullet Generator</title>
+<title>Slate Newsletter Tools</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Verdana, Geneva, sans-serif; background: #f4f4f4; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 32px 16px; }
+  body { font-family: Verdana, Geneva, sans-serif; background: #f4f4f4; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 32px 16px 60px; }
+
   .slate-app { background: #fff; width: 100%; max-width: 1100px; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.10); }
+
+  /* ── Header ── */
   .slate-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #2c0022; }
   .slate-wordmark img { height: 30px; width: auto; display: block; }
   .slate-tool-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.5); line-height: 1.3; text-align: right; }
+
+  /* ── Tab bar ── */
+  .tab-bar { display: flex; background: #fff; border-bottom: 1px solid #e0d0d8; padding: 0 20px; }
+  .tab-btn { padding: 10px 14px; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #aaa; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; cursor: pointer; font-family: Verdana, Geneva, sans-serif; transition: color 0.12s; white-space: nowrap; }
+  .tab-btn:hover { color: #2c0022; }
+  .tab-btn.active { color: #2c0022; border-bottom-color: #2c0022; }
+
+  /* ── Layout ── */
   .wrap { display: flex; gap: 16px; padding: 20px; height: 580px; }
   .panel { display: flex; flex-direction: column; flex: 1; min-width: 0; }
   .panel-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #6a0432; margin-bottom: 6px; }
+
+  /* ── Tab panel system ── */
+  .tab-panel { display: none; flex-direction: column; flex: 1; min-height: 0; }
+  .tab-panel.active { display: flex; }
+  .right-content { display: none; flex-direction: column; flex: 1; min-height: 0; }
+  .right-content.active { display: flex; }
+
+  /* ── Bullet editor ── */
   .toolbar { display: flex; align-items: center; gap: 2px; padding: 5px 8px; background: #2c0022; border-radius: 4px 4px 0 0; }
   .tb-btn { display: flex; align-items: center; justify-content: center; min-width: 30px; height: 26px; padding: 0 6px; border: 1px solid transparent; border-radius: 3px; background: none; cursor: pointer; color: rgba(255,255,255,0.7); font-family: Verdana, Geneva, sans-serif; font-size: 12px; font-weight: 700; transition: background 0.12s, color 0.12s; }
   .tb-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
@@ -41,110 +61,255 @@
   .bullet-text strong { font-weight: 700; }
   .bullet-text em { font-style: italic; }
   .bullet-text u { text-decoration: underline; }
+
+  /* ── HTML output (right) ── */
   .code-panel-inner { flex: 1; display: flex; flex-direction: column; }
   textarea#html-out { flex: 1; resize: none; border: 1px solid #d0d0d0; border-radius: 4px; padding: 12px 14px; background: #f8f8f8; font-family: monospace; font-size: 11px; color: #444; line-height: 1.65; outline: none; }
   .copy-btn { margin-top: 8px; align-self: flex-end; padding: 7px 18px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border: none; border-radius: 3px; background: #2c0022; color: #fff; cursor: pointer; font-family: Verdana, Geneva, sans-serif; display: flex; align-items: center; gap: 7px; transition: background 0.12s; }
   .copy-btn:hover { background: #6a0432; }
   .copy-btn.copied { background: #1a7a4a; }
+
+  /* ── Form panels (asterisk / byline / continue reading) ── */
+  .form-body { flex: 1; border: 1px solid #d0d0d0; border-radius: 4px; padding: 18px 18px 14px; background: #fff; overflow-y: auto; }
+  .form-group { margin-bottom: 18px; }
+  .field-label { display: block; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #6a0432; margin-bottom: 6px; }
+  .field-input { width: 100%; padding: 8px 10px; font-size: 12px; font-family: Verdana, Geneva, sans-serif; border: 1px solid #d0d0d0; border-radius: 3px; color: #111; outline: none; transition: border-color 0.15s; background: #fafafa; }
+  .field-input:focus { border-color: #2c0022; background: #fff; }
+  .field-input::placeholder { color: #ccc; }
+
+  /* ── Validator left panel ── */
+  .validator-wrap { flex: 1; display: flex; flex-direction: column; min-height: 0; border: 1px solid #d0d0d0; border-radius: 4px; overflow: hidden; }
+  .validator-textarea-el { flex: 1; resize: none; border: none; border-bottom: 1px solid #e8e8e8; padding: 12px 14px; font-family: monospace; font-size: 11px; color: #444; line-height: 1.65; outline: none; background: #f8f8f8; }
+  .validator-footer { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #fff; flex-wrap: wrap; }
+  .btn-run-validator { padding: 6px 18px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; border: none; border-radius: 3px; background: #2c0022; color: #fff; cursor: pointer; font-family: Verdana, Geneva, sans-serif; transition: background 0.12s; display: flex; align-items: center; gap: 6px; }
+  .btn-run-validator:hover { background: #6a0432; }
+  .btn-clear-validator { background: none; border: 1px solid #ccc; color: #666; padding: 5px 12px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; border-radius: 3px; cursor: pointer; font-family: Verdana, Geneva, sans-serif; }
+  .qp-tag { font-size: 10px; color: #888; }
+
+  /* ── Validator right panel ── */
+  .validator-results-panel { flex: 1; overflow-y: auto; }
+  .v-empty { display: flex; align-items: center; justify-content: center; padding: 30px 0; font-size: 11px; color: #ccc; font-style: italic; }
+  .v-summary { display: flex; align-items: flex-start; gap: 12px; border: 1px solid #ddd; padding: 12px 14px; margin-bottom: 8px; background: #fafafa; border-radius: 3px; }
+  .v-summary-icon { font-size: 20px; flex-shrink: 0; line-height: 1; }
+  .v-summary-main { font-weight: 700; font-size: 12px; }
+  .v-summary-sub { font-size: 10px; color: #888; margin-top: 2px; }
+  .v-pills { display: flex; gap: 6px; margin-top: 5px; flex-wrap: wrap; }
+  .v-pill { font-size: 9px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; }
+  .v-pill-error { background: #ffe0e6; color: #a0001e; }
+  .v-pill-warn { background: #fff3cd; color: #7d5a00; }
+  .v-pill-pass { background: #d4f5db; color: #1a6b2e; }
+  .v-check { border: 1px solid #e8e8e8; margin-bottom: 4px; background: #fff; border-radius: 3px; overflow: hidden; }
+  .v-check-header { display: flex; align-items: center; gap: 10px; padding: 9px 13px; cursor: pointer; user-select: none; transition: background 0.1s; }
+  .v-check-header:hover { background: #f9f9f9; }
+  .v-check-icon { font-size: 12px; flex-shrink: 0; width: 16px; text-align: center; line-height: 1; }
+  .v-check-info { flex: 1; min-width: 0; }
+  .v-check-title { font-weight: 700; font-size: 11px; }
+  .v-check-sub { font-size: 10px; color: #888; margin-top: 1px; }
+  .v-check-arrow { color: #bbb; font-size: 9px; transition: transform 0.15s; flex-shrink: 0; }
+  .v-check-arrow.open { transform: rotate(180deg); }
+  .v-check-body { display: none; padding: 2px 13px 10px; border-top: 1px solid #f2f2f2; }
+  .v-check-body.open { display: block; }
+  .v-issue { border-left: 3px solid #ff0e50; background: #fff8f9; padding: 7px 10px; margin-top: 6px; border-radius: 0 3px 3px 0; }
+  .v-issue.warn { border-left-color: #f5a623; background: #fffbf0; }
+  .v-issue-title { font-size: 11px; font-weight: 700; color: #111; }
+  .v-issue-code { font-family: monospace; font-size: 10px; color: #555; background: #f2f2f2; padding: 5px 8px; margin-top: 5px; white-space: pre-wrap; word-break: break-all; border-radius: 2px; }
+  .v-clay-header { font-size: 11px; font-weight: 700; color: #7d5a00; padding-top: 8px; margin-bottom: -3px; }
+
+  /* ── Shared hint ── */
   .hint { font-size: 10px; color: #888; margin-top: 7px; line-height: 1.6; }
   .hint kbd { font-size: 9px; background: #e8e8e8; color: #444; border: 1px solid #d0d0d0; border-radius: 2px; padding: 1px 4px; font-family: monospace; }
 </style>
 </head>
 <body>
 <div class="slate-app">
+
   <div class="slate-header">
     <div class="slate-wordmark">
-      <img src="https://brand.slate.com/images/logos/slate_white.svg" alt="Slate"
-           onerror="this.src='https://compote.slate.com/images/05823f53-33f9-49a9-a249-6a8aa7b7d4f9.png?crop=2423%2C1615%2Cx332%2Cy278&width=1600'" />
+      <img src="https://brand.slate.com/images/logos/slate_white.svg" alt="Slate" />
     </div>
-    <div class="slate-tool-label">Bullet<br>Generator</div>
+    <div class="slate-tool-label" id="header-tool-label">Bullet<br>Generator</div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="bullets" onclick="switchTab('bullets')">Bullets</button>
+    <button class="tab-btn" data-tab="asterisk" onclick="switchTab('asterisk')">Asterisk</button>
+    <button class="tab-btn" data-tab="byline" onclick="switchTab('byline')">Byline</button>
+    <button class="tab-btn" data-tab="continue" onclick="switchTab('continue')">Continue Reading</button>
+    <button class="tab-btn" data-tab="validator" onclick="switchTab('validator')">Email Validator</button>
   </div>
 
   <div class="wrap">
+
+    <!-- ══ LEFT COLUMN ══ -->
     <div class="panel">
-      <div class="panel-label">Bullet points</div>
-      <div class="toolbar" id="toolbar">
-        <button class="tb-btn" id="btn-bold" title="Bold (⌘B)" onclick="fmt('bold')">B<span class="tb-shortcut">⌘B</span></button>
-        <button class="tb-btn" id="btn-italic" title="Italic (⌘I)" onclick="fmt('italic')"><em>I</em><span class="tb-shortcut">⌘I</span></button>
-        <button class="tb-btn" id="btn-underline" title="Underline (⌘U)" onclick="fmt('underline')"><u>U</u><span class="tb-shortcut">⌘U</span></button>
-        <div class="tb-sep"></div>
-        <button class="tb-btn" id="btn-link" title="Insert link (⌘K)" onclick="toggleLinkRow()"><i class="ti ti-link"></i><span class="tb-shortcut">⌘K</span></button>
-        <button class="tb-btn" id="btn-unlink" title="Remove link" onclick="removeLink()" style="display:none"><i class="ti ti-link-off"></i></button>
-      </div>
-      <div class="link-row" id="link-row">
-        <i class="ti ti-link" style="font-size:14px;color:rgba(255,255,255,0.6)"></i>
-        <input type="url" id="link-url" placeholder="https://slate.com/article…" />
-        <button class="link-apply" onclick="applyLink()">Apply</button>
-        <button class="link-cancel" onclick="closeLinkRow()">✕</button>
-      </div>
-      <div class="bullet-editor" id="editor" onclick="editorClick(event)">
-        <div class="bullet-item">
-          <div class="bullet-icon">
-            <img src="https://media.sailthru.com/fss/ehlu0k/34cd9f2b-2109-4554-b354-4620ee86263c/Vector+%28Stroke%29+%281%29.png" width="12" alt="" onerror="this.replaceWith(makeFallback())" />
+
+      <!-- BULLETS TAB -->
+      <div class="tab-panel active" id="panel-bullets">
+        <div class="panel-label">Bullet points</div>
+        <div class="toolbar" id="toolbar">
+          <button class="tb-btn" id="btn-bold" title="Bold (⌘B)" onclick="fmt('bold')">B<span class="tb-shortcut">⌘B</span></button>
+          <button class="tb-btn" id="btn-italic" title="Italic (⌘I)" onclick="fmt('italic')"><em>I</em><span class="tb-shortcut">⌘I</span></button>
+          <button class="tb-btn" id="btn-underline" title="Underline (⌘U)" onclick="fmt('underline')"><u>U</u><span class="tb-shortcut">⌘U</span></button>
+          <div class="tb-sep"></div>
+          <button class="tb-btn" id="btn-link" title="Insert link (⌘K)" onclick="toggleLinkRow()"><i class="ti ti-link"></i><span class="tb-shortcut">⌘K</span></button>
+          <button class="tb-btn" id="btn-unlink" title="Remove link" onclick="removeLink()" style="display:none"><i class="ti ti-link-off"></i></button>
+        </div>
+        <div class="link-row" id="link-row">
+          <i class="ti ti-link" style="font-size:14px;color:rgba(255,255,255,0.6)"></i>
+          <input type="url" id="link-url" placeholder="https://slate.com/article…" />
+          <button class="link-apply" onclick="applyLink()">Apply</button>
+          <button class="link-cancel" onclick="closeLinkRow()">✕</button>
+        </div>
+        <div class="bullet-editor" id="editor" onclick="editorClick(event)">
+          <div class="bullet-item">
+            <div class="bullet-icon">
+              <img src="https://media.sailthru.com/fss/ehlu0k/34cd9f2b-2109-4554-b354-4620ee86263c/Vector+%28Stroke%29+%281%29.png" width="12" alt="" onerror="this.replaceWith(makeFallback())" />
+            </div>
+            <div class="bullet-text" contenteditable="true" data-placeholder="Type here, or paste paragraphs to create bullets instantly…" spellcheck="true"></div>
           </div>
-          <div class="bullet-text" contenteditable="true" data-placeholder="Type here, or paste paragraphs to create bullets instantly…" spellcheck="true"></div>
+        </div>
+        <div class="hint">
+          <kbd>Enter</kbd> new bullet &nbsp;·&nbsp;
+          <kbd>⌘B</kbd> bold &nbsp;·&nbsp; <kbd>⌘I</kbd> italic &nbsp;·&nbsp; <kbd>⌘U</kbd> underline &nbsp;·&nbsp;
+          <kbd>⌘K</kbd> link &nbsp;·&nbsp;
+          Paste paragraphs → instant bullets &nbsp;·&nbsp; Select text + paste URL = link
         </div>
       </div>
-      <div class="hint">
-        <kbd>Enter</kbd> new bullet &nbsp;·&nbsp;
-        <kbd>⌘B</kbd> bold &nbsp;·&nbsp; <kbd>⌘I</kbd> italic &nbsp;·&nbsp; <kbd>⌘U</kbd> underline &nbsp;·&nbsp;
-        <kbd>⌘K</kbd> link &nbsp;·&nbsp;
-        Paste paragraphs → instant bullets &nbsp;·&nbsp; Select text + paste URL = link
-      </div>
-    </div>
 
-    <div class="panel">
-      <div class="panel-label">HTML output</div>
-      <div class="code-panel-inner">
-        <textarea id="html-out" readonly spellcheck="false"></textarea>
-        <button class="copy-btn" id="copy-btn" onclick="copyHTML()">
-          <i class="ti ti-copy"></i> Copy HTML
-        </button>
+      <!-- ASTERISK TAB -->
+      <div class="tab-panel" id="panel-asterisk">
+        <div class="panel-label">Asterisk item</div>
+        <div class="form-body">
+          <div class="form-group">
+            <label class="field-label" for="ast-text">Link Text</label>
+            <input type="text" id="ast-text" class="field-input" placeholder="Loitering Near an Obelisk">
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="ast-url">Article URL</label>
+            <input type="url" id="ast-url" class="field-input" placeholder="https://slate.com/…">
+          </div>
+        </div>
+        <div class="hint">Text appears uppercase in the email. Outputs the &lt;tr&gt; to paste inside your asterisk &lt;table&gt;.</div>
       </div>
-    </div>
-  </div>
-</div>
+
+      <!-- BYLINE TAB -->
+      <div class="tab-panel" id="panel-byline">
+        <div class="panel-label">Author byline</div>
+        <div class="form-body">
+          <div class="form-group">
+            <label class="field-label" for="byl-name">Author Name</label>
+            <input type="text" id="byl-name" class="field-input" placeholder="Hillary Frey">
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="byl-url">Author Page URL</label>
+            <input type="url" id="byl-url" class="field-input" placeholder="https://slate.com/author/hillary-frey">
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="byl-headshot">Headshot URL</label>
+            <input type="url" id="byl-headshot" class="field-input" placeholder="https://media.sailthru.com/…">
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="byl-date">Date</label>
+            <input type="text" id="byl-date" class="field-input" placeholder="6-25-26">
+          </div>
+        </div>
+        <div class="hint">Author URL auto-fills from name. Date defaults to today.</div>
+      </div>
+
+      <!-- CONTINUE READING TAB -->
+      <div class="tab-panel" id="panel-continue">
+        <div class="panel-label">Continue reading link</div>
+        <div class="form-body">
+          <div class="form-group">
+            <label class="field-label" for="ctr-text">Link Text</label>
+            <input type="text" id="ctr-text" class="field-input" value="Continue reading on Slate">
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="ctr-url">Article URL</label>
+            <input type="url" id="ctr-url" class="field-input" placeholder="https://slate.com/…">
+          </div>
+        </div>
+        <div class="hint">Link text defaults to "Continue reading on Slate" — edit freely. Outputs the &lt;tr&gt; to paste into your email template.</div>
+      </div>
+
+      <!-- EMAIL VALIDATOR TAB (left) -->
+      <div class="tab-panel" id="panel-validator">
+        <div class="panel-label">Email HTML</div>
+        <div class="validator-wrap">
+          <textarea id="validator-input" class="validator-textarea-el" placeholder="Paste email HTML here… (⌘↵ to run)" spellcheck="false"></textarea>
+          <div class="validator-footer">
+            <button class="btn-run-validator" onclick="runEmailValidation()"><i class="ti ti-shield-check"></i>&nbsp;Validate</button>
+            <button class="btn-clear-validator" onclick="clearValidator()">Clear</button>
+            <span class="qp-tag" id="qp-tag"></span>
+          </div>
+        </div>
+        <div class="hint">Supports quoted-printable encoded source. <kbd>⌘↵</kbd> to run.</div>
+      </div>
+
+    </div><!-- /left panel -->
+
+    <!-- ══ RIGHT COLUMN ══ -->
+    <div class="panel">
+
+      <!-- HTML output (bullets / asterisk / byline / continue) -->
+      <div class="right-content active" id="right-html">
+        <div class="panel-label">HTML output</div>
+        <div class="code-panel-inner">
+          <textarea id="html-out" readonly spellcheck="false"></textarea>
+          <button class="copy-btn" id="copy-btn" onclick="copyHTML()">
+            <i class="ti ti-copy"></i> Copy HTML
+          </button>
+        </div>
+      </div>
+
+      <!-- Validator results -->
+      <div class="right-content" id="right-validator">
+        <div class="panel-label">Validation results</div>
+        <div class="validator-results-panel" id="v-results">
+          <div class="v-empty">Paste email HTML on the left and click Validate</div>
+        </div>
+      </div>
+
+    </div><!-- /right panel -->
+  </div><!-- /wrap -->
+</div><!-- /slate-app -->
 
 <script>
+// ═══════════════════════════════════════════════════════════
+// § 1 · BULLET GENERATOR
+// ═══════════════════════════════════════════════════════════
+
 const BULLET_IMG_SRC = 'https://media.sailthru.com/fss/ehlu0k/34cd9f2b-2109-4554-b354-4620ee86263c/Vector+%28Stroke%29+%281%29.png';
 const PARA_DELIM = '\x01\x01';
 const BLOCK_TAGS = new Set(['p','div','li','h1','h2','h3','h4','h5','h6','blockquote','td','th','dt','dd','section','article','tr','pre']);
-const SKIP_TAGS = new Set(['meta','style','script','link','head','title']);
+const SKIP_TAGS  = new Set(['meta','style','script','link','head','title']);
 
 function makeFallback() {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('width', '12'); svg.setAttribute('height', '14');
-  svg.setAttribute('viewBox', '0 0 12 14'); svg.setAttribute('fill', 'none');
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', 'M2 2L8 7L2 12');
-  path.setAttribute('stroke', '#ff0e50'); path.setAttribute('stroke-width', '2.2');
-  path.setAttribute('stroke-linecap', 'round'); path.setAttribute('stroke-linejoin', 'round');
-  svg.appendChild(path);
-  return svg;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width','12'); svg.setAttribute('height','14');
+  svg.setAttribute('viewBox','0 0 12 14'); svg.setAttribute('fill','none');
+  const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+  p.setAttribute('d','M2 2L8 7L2 12');
+  p.setAttribute('stroke','#ff0e50'); p.setAttribute('stroke-width','2.2');
+  p.setAttribute('stroke-linecap','round'); p.setAttribute('stroke-linejoin','round');
+  svg.appendChild(p); return svg;
 }
 
 function makeBulletItem(htmlContent) {
-  const item = document.createElement('div');
-  item.className = 'bullet-item';
-  const icon = document.createElement('div');
-  icon.className = 'bullet-icon';
-  const img = document.createElement('img');
+  const item = document.createElement('div'); item.className = 'bullet-item';
+  const icon = document.createElement('div'); icon.className = 'bullet-icon';
+  const img  = document.createElement('img');
   img.src = BULLET_IMG_SRC; img.width = 12; img.alt = '';
   img.onerror = function() { this.replaceWith(makeFallback()); };
   icon.appendChild(img);
   const t = document.createElement('div');
-  t.className = 'bullet-text';
-  t.contentEditable = 'true';
-  t.dataset.placeholder = 'Type bullet text here…';
-  t.spellcheck = true;
+  t.className = 'bullet-text'; t.contentEditable = 'true';
+  t.dataset.placeholder = 'Type bullet text here…'; t.spellcheck = true;
   if (htmlContent) t.innerHTML = htmlContent;
-  item.appendChild(icon);
-  item.appendChild(t);
+  item.appendChild(icon); item.appendChild(t);
   return { item, t };
 }
 
-// Convert a node to sanitized inline HTML — bold, italic, underline, links only.
-// Handles style-based formatting (Google Docs uses spans with inline styles).
 function sanitizeInline(node) {
   if (node.nodeType === Node.TEXT_NODE) return node.textContent;
   if (node.nodeType !== Node.ELEMENT_NODE) return '';
@@ -153,30 +318,23 @@ function sanitizeInline(node) {
   const kids = Array.from(node.childNodes).map(sanitizeInline).join('');
   if (tag === 'a') {
     const href = node.getAttribute('href') || '';
-    if (href && !href.startsWith('javascript')) {
+    if (href && !href.startsWith('javascript'))
       return `<a href="${href}" style="color:#ff0e50;text-decoration:underline;" target="_blank">${kids}</a>`;
-    }
     return kids;
   }
   if (tag === 'strong') return kids ? `<strong>${kids}</strong>` : '';
-  if (tag === 'em') return kids ? `<em>${kids}</em>` : '';
-  if (tag === 'u') return kids ? `<u>${kids}</u>` : '';
+  if (tag === 'em')     return kids ? `<em>${kids}</em>` : '';
+  if (tag === 'u')      return kids ? `<u>${kids}</u>` : '';
   if (tag === 'b') {
-    // Google Docs wraps everything in <b style="font-weight:normal"> — ignore that
     const fw = node.style.fontWeight;
-    if (fw === 'normal' || fw === '400') return kids;
-    return kids ? `<strong>${kids}</strong>` : '';
+    return (fw === 'normal' || fw === '400') ? kids : (kids ? `<strong>${kids}</strong>` : '');
   }
   if (tag === 'i') {
-    const fs = node.style.fontStyle;
-    if (fs === 'normal') return kids;
-    return kids ? `<em>${kids}</em>` : '';
+    return node.style.fontStyle === 'normal' ? kids : (kids ? `<em>${kids}</em>` : '');
   }
   if (tag === 'span') {
     let out = kids;
-    const fw = node.style.fontWeight;
-    const fs = node.style.fontStyle;
-    const td = node.style.textDecoration;
+    const fw = node.style.fontWeight, fs = node.style.fontStyle, td = node.style.textDecoration;
     if (fw && (fw === 'bold' || parseInt(fw) >= 600)) out = `<strong>${out}</strong>`;
     if (fs === 'italic') out = `<em>${out}</em>`;
     if (td && td.includes('underline')) out = `<u>${out}</u>`;
@@ -186,34 +344,18 @@ function sanitizeInline(node) {
   return kids;
 }
 
-// Walk any node: block elements emit a paragraph delimiter after their content;
-// elements that wrap blocks (like Google Docs' <b> container) are recursed into transparently;
-// pure inline elements are sanitized for formatting.
 function nodeToDelimited(node) {
   if (node.nodeType === Node.TEXT_NODE) return node.textContent;
   if (node.nodeType !== Node.ELEMENT_NODE) return '';
   const tag = node.tagName.toLowerCase();
   if (SKIP_TAGS.has(tag)) return '';
-
   const blockChildren = Array.from(node.children).filter(c => BLOCK_TAGS.has(c.tagName.toLowerCase()));
-
   if (BLOCK_TAGS.has(tag)) {
-    if (blockChildren.length > 0) {
-      // Container block (e.g. <div> wrapping <p> tags) — recurse, no own delimiter
-      return Array.from(node.childNodes).map(nodeToDelimited).join('');
-    } else {
-      // Leaf block — extract inline content and emit delimiter
-      const content = sanitizeInline(node).trim();
-      return content ? content + PARA_DELIM : PARA_DELIM;
-    }
+    if (blockChildren.length > 0) return Array.from(node.childNodes).map(nodeToDelimited).join('');
+    const content = sanitizeInline(node).trim();
+    return content ? content + PARA_DELIM : PARA_DELIM;
   }
-
-  // Not a block tag. If it wraps block children (e.g. Google Docs <b> wrapper), recurse.
-  if (blockChildren.length > 0) {
-    return Array.from(node.childNodes).map(nodeToDelimited).join('');
-  }
-
-  // Pure inline element — sanitize formatting
+  if (blockChildren.length > 0) return Array.from(node.childNodes).map(nodeToDelimited).join('');
   return sanitizeInline(node);
 }
 
@@ -224,19 +366,18 @@ function extractParagraphsFromHTML(htmlStr) {
 }
 
 let savedRange = null;
-function isUrl(s) { return /^https?:\/\//i.test(s) || /^www\./i.test(s); }
-function normalizeUrl(s) { return /^https?:\/\//i.test(s.trim()) ? s.trim() : 'https://' + s.trim(); }
-function saveRange() { const sel = window.getSelection(); if (sel && sel.rangeCount > 0) savedRange = sel.getRangeAt(0).cloneRange(); }
-function restoreRange() { if (!savedRange) return; const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
-
-function fmt(cmd) { document.execCommand(cmd, false, null); generateHTML(); updateToolbarState(); }
+function isUrl(s)         { return /^https?:\/\//i.test(s) || /^www\./i.test(s); }
+function normalizeUrl(s)  { return /^https?:\/\//i.test(s.trim()) ? s.trim() : 'https://' + s.trim(); }
+function saveRange()      { const sel = window.getSelection(); if (sel && sel.rangeCount > 0) savedRange = sel.getRangeAt(0).cloneRange(); }
+function restoreRange()   { if (!savedRange) return; const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
+function fmt(cmd)         { document.execCommand(cmd, false, null); generateHTML(); updateToolbarState(); }
 
 function updateToolbarState() {
   document.getElementById('btn-bold').classList.toggle('active', document.queryCommandState('bold'));
   document.getElementById('btn-italic').classList.toggle('active', document.queryCommandState('italic'));
   document.getElementById('btn-underline').classList.toggle('active', document.queryCommandState('underline'));
   const inLink = !!getSelectedAnchor();
-  document.getElementById('btn-link').style.display = inLink ? 'none' : '';
+  document.getElementById('btn-link').style.display   = inLink ? 'none' : '';
   document.getElementById('btn-unlink').style.display = inLink ? '' : 'none';
 }
 
@@ -258,6 +399,7 @@ function toggleLinkRow() {
   setTimeout(() => { input.focus(); input.select(); }, 30);
 }
 function closeLinkRow() { document.getElementById('link-row').classList.remove('visible'); document.getElementById('link-url').value = ''; restoreRange(); }
+
 function applyLink() {
   const url = document.getElementById('link-url').value.trim();
   if (!url) { closeLinkRow(); return; }
@@ -280,9 +422,9 @@ function serializeNode(node) {
   const tag = node.tagName.toLowerCase();
   const kids = Array.from(node.childNodes).map(serializeNode).join('');
   if (tag === 'br') return '';
-  if (tag === 'a') return `<a href="${node.getAttribute('href')||'#'}" style="color: #ff0e50; text-decoration: underline;" target="_blank">${kids}</a>`;
+  if (tag === 'a')  return `<a href="${node.getAttribute('href')||'#'}" style="color: #ff0e50; text-decoration: underline;">${kids}</a>`;
   if (tag === 'strong' || tag === 'b') return `<strong>${kids}</strong>`;
-  if (tag === 'em' || tag === 'i') return `<em>${kids}</em>`;
+  if (tag === 'em'     || tag === 'i') return `<em>${kids}</em>`;
   if (tag === 'u') return `<u>${kids}</u>`;
   if (tag === 'span') {
     let out = kids;
@@ -328,8 +470,7 @@ function insertParagraphsAsBullets(paragraphs, targetEl) {
     else {
       const { item, t } = makeBulletItem(para);
       insertAfter.parentNode.insertBefore(item, insertAfter.nextSibling);
-      setupBullet(t);
-      insertAfter = item;
+      setupBullet(t); insertAfter = item;
     }
   });
   const lastText = insertAfter.querySelector('.bullet-text');
@@ -357,7 +498,6 @@ function placeCursorAtEnd(el) {
   range.selectNodeContents(el); range.collapse(false);
   sel.removeAllRanges(); sel.addRange(range);
 }
-
 function editorClick(e) {
   if (e.target === document.getElementById('editor')) {
     const last = document.querySelector('.bullet-item:last-child .bullet-text');
@@ -377,50 +517,35 @@ function setupBullet(el) {
     else if ((e.metaKey || e.ctrlKey) && e.key === 'u') { e.preventDefault(); fmt('underline'); }
     else if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); toggleLinkRow(); }
   });
-
   el.addEventListener('paste', e => {
     e.preventDefault();
-    const htmlData = e.clipboardData.getData('text/html');
+    const htmlData  = e.clipboardData.getData('text/html');
     const plainData = e.clipboardData.getData('text/plain');
-    const trimmedPlain = plainData.trim();
-
-    // URL paste on selection → create link
-    if (isUrl(trimmedPlain)) {
+    const trimmed   = plainData.trim();
+    if (isUrl(trimmed)) {
       const sel = window.getSelection();
       if (sel && !sel.isCollapsed && sel.anchorNode && el.contains(sel.anchorNode)) {
-        document.execCommand('createLink', false, normalizeUrl(trimmedPlain));
+        document.execCommand('createLink', false, normalizeUrl(trimmed));
         const a = getSelectedAnchor();
         if (a) { a.style.color = '#ff0e50'; a.style.textDecoration = 'underline'; }
         generateHTML(); return;
       }
     }
-
-    // Try HTML path first — handles formatting AND paragraph splitting
     if (htmlData) {
       const paragraphs = extractParagraphsFromHTML(htmlData);
-      if (paragraphs.length > 1) {
-        insertParagraphsAsBullets(paragraphs, el); return;
-      }
-      if (paragraphs.length === 1) {
-        // Single formatted paragraph — insert inline
-        document.execCommand('insertHTML', false, paragraphs[0]);
-        generateHTML(); return;
-      }
+      if (paragraphs.length > 1) { insertParagraphsAsBullets(paragraphs, el); return; }
+      if (paragraphs.length === 1) { document.execCommand('insertHTML', false, paragraphs[0]); generateHTML(); return; }
     }
-
-    // Plain text fallback — split on double newlines
-    const plainParas = trimmedPlain.split(/\n\s*\n/).map(p => p.replace(/\n/g,' ').trim()).filter(Boolean);
-    if (plainParas.length > 1) {
-      insertParagraphsAsBullets(plainParas, el); return;
-    }
-    document.execCommand('insertText', false, trimmedPlain);
+    const plainParas = trimmed.split(/\n\s*\n/).map(p => p.replace(/\n/g,' ').trim()).filter(Boolean);
+    if (plainParas.length > 1) { insertParagraphsAsBullets(plainParas, el); return; }
+    document.execCommand('insertText', false, trimmed);
     generateHTML();
   });
 }
 
 document.querySelectorAll('.bullet-text').forEach(setupBullet);
 document.getElementById('link-url').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); applyLink(); }
+  if (e.key === 'Enter')  { e.preventDefault(); applyLink(); }
   if (e.key === 'Escape') { closeLinkRow(); }
 });
 
@@ -434,6 +559,419 @@ function copyHTML() {
     setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '<i class="ti ti-copy"></i> Copy HTML'; }, 2000);
   });
 }
+
+
+// ═══════════════════════════════════════════════════════════
+// § 2 · TAB SWITCHING
+// ═══════════════════════════════════════════════════════════
+
+const TAB_LABELS = {
+  bullets:   'Bullet<br>Generator',
+  asterisk:  'Asterisk<br>Generator',
+  byline:    'Byline<br>Generator',
+  continue:  'Continue<br>Reading',
+  validator: 'Email<br>Validator'
+};
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+  const isV = name === 'validator';
+  document.getElementById('right-html').classList.toggle('active', !isV);
+  document.getElementById('right-validator').classList.toggle('active', isV);
+  document.getElementById('header-tool-label').innerHTML = TAB_LABELS[name] || '';
+  if      (name === 'bullets')  generateHTML();
+  else if (name === 'asterisk') generateAsterisk();
+  else if (name === 'byline')   generateByline();
+  else if (name === 'continue') generateContinue();
+}
+
+
+// ═══════════════════════════════════════════════════════════
+// § 3 · SHARED HTML HELPERS
+// ═══════════════════════════════════════════════════════════
+
+function escHtml(s)  { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escAttr(s)  { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+
+
+// ═══════════════════════════════════════════════════════════
+// § 4 · ASTERISK GENERATOR
+// ═══════════════════════════════════════════════════════════
+
+function generateAsterisk() {
+  const text = document.getElementById('ast-text').value.trim();
+  const url  = document.getElementById('ast-url').value.trim() || 'https://slate.com/#';
+  if (!text && !document.getElementById('ast-url').value.trim()) { document.getElementById('html-out').value = ''; return; }
+  document.getElementById('html-out').value =
+`<tr>
+  <td align="left" style="padding: 5px 0 5px 10px;">
+    <table cellpadding="0" cellspacing="0" border="0" role="presentation">
+      <tr>
+        <td style="padding-right: 8px; vertical-align: middle;">
+          <img src="https://compote.slate.com/images/db6abd23-2b30-4566-8ebb-1ab74396137f.png" alt="Asterisk" width="20" height="22" style="display:block; border:0; outline:none; text-decoration:none;" />
+        </td>
+        <td style="vertical-align: left; text-align:left; font-family: Verdana, Helvetica, Arial, sans-serif; font-size: 12px; color: #666; letter-spacing: 0.07em; text-transform: uppercase; line-height: 1.5;">
+          <a href="${escAttr(url)}" style="color: #666; text-decoration: none;" target="_blank">${escHtml(text) || 'TKTKTKT'}</a>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>`;
+}
+
+document.getElementById('ast-text').addEventListener('input', generateAsterisk);
+document.getElementById('ast-url').addEventListener('input', generateAsterisk);
+
+
+// ═══════════════════════════════════════════════════════════
+// § 5 · BYLINE GENERATOR
+// ═══════════════════════════════════════════════════════════
+
+function getTodayFormatted() {
+  const d = new Date();
+  return `${d.getMonth()+1}-${d.getDate()}-${String(d.getFullYear()).slice(-2)}`;
+}
+function nameToSlug(name) {
+  return name.trim().toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,'-');
+}
+
+let bylUrlEdited = false;
+
+function generateByline() {
+  const name     = document.getElementById('byl-name').value.trim();
+  const url      = document.getElementById('byl-url').value.trim() || (name ? `https://slate.com/author/${nameToSlug(name)}` : 'https://slate.com/author/');
+  const headshot = document.getElementById('byl-headshot').value.trim() || 'https://media.sailthru.com/fss/ehlu0k/0d95f35a-6922-4612-98f5-2609f8818079/77891eed-b5f0-4330-bb63-eda9e7852b8e-modified.png';
+  const date     = document.getElementById('byl-date').value.trim() || getTodayFormatted();
+  if (!name && !document.getElementById('byl-url').value.trim()) { document.getElementById('html-out').value = ''; return; }
+  document.getElementById('html-out').value =
+`<div style="padding: 0 10px;">
+  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: Verdana, Geneva, sans-serif; text-align: left;">
+    <tr>
+      <td style="vertical-align: middle; padding-right: 14px; white-space: nowrap;">
+        <img src="${escAttr(headshot)}" alt="${escAttr(name + "'s headshot")}" width="52" height="52" style="border-radius: 50%; display: inline-block; vertical-align: middle;" />
+        <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.02em; color: #111; text-transform: uppercase; vertical-align: middle; margin-left: 10px;"><a href="${escAttr(url)}" target="_blank" style="color: #111; text-decoration: none;">By ${escHtml(name || 'Author Name')}</a></span>
+      </td>
+      <td style="vertical-align: middle; white-space: nowrap; text-align: right; width: 120px;">
+        <span style="font-size: 12px; color: #888; letter-spacing: 0.02em; text-transform: uppercase;">${escHtml(date)}</span>
+      </td>
+    </tr>
+  </table>
+</div>`;
+}
+
+document.getElementById('byl-name').addEventListener('input', function() {
+  if (!bylUrlEdited) {
+    const slug = nameToSlug(this.value);
+    document.getElementById('byl-url').value = slug ? `https://slate.com/author/${slug}` : '';
+  }
+  generateByline();
+});
+document.getElementById('byl-url').addEventListener('input', function() { bylUrlEdited = !!this.value.trim(); generateByline(); });
+document.getElementById('byl-headshot').addEventListener('input', generateByline);
+document.getElementById('byl-date').addEventListener('input', generateByline);
+document.getElementById('byl-date').value = getTodayFormatted();
+
+
+// ═══════════════════════════════════════════════════════════
+// § 6 · CONTINUE READING GENERATOR
+// ═══════════════════════════════════════════════════════════
+
+function generateContinue() {
+  const text = document.getElementById('ctr-text').value || 'Continue reading on Slate';
+  const url  = document.getElementById('ctr-url').value.trim() || 'https://slate.com/#';
+  document.getElementById('html-out').value =
+`<tr>
+  <td align="center" style="padding: 12px 0;">
+    <table cellpadding="0" cellspacing="0" border="0" role="presentation" align="center">
+      <tr>
+        <td style="vertical-align: middle;">
+          <a href="${escAttr(url)}" target="_blank" style="font-family: Verdana, Geneva, sans-serif; font-size: 16px; font-weight: 700; color: #FF0055; text-decoration: underline; text-underline-offset: 3px;">
+            ${escHtml(text)}
+          </a>
+        </td>
+        <td style="vertical-align: middle; padding-left: 6px;">
+          <img src="https://media.sailthru.com/fss/ehlu0k/34cd9f2b-2109-4554-b354-4620ee86263c/Vector+%28Stroke%29+%281%29.png" alt="↗" width="14" height="14" style="display: block; border: 0; outline: none; text-decoration: none;" />
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>`;
+}
+
+document.getElementById('ctr-text').addEventListener('input', generateContinue);
+document.getElementById('ctr-url').addEventListener('input', generateContinue);
+
+
+// ═══════════════════════════════════════════════════════════
+// § 7 · EMAIL VALIDATOR
+// ═══════════════════════════════════════════════════════════
+
+function vDecodeQP(str)  { return str.replace(/=\r?\n/g,'').replace(/=([0-9A-Fa-f]{2})/g,(_,h)=>String.fromCharCode(parseInt(h,16))); }
+function vLooksQP(str)   { return /=3[Dd]/i.test(str)||/=[0-9A-F]{2}/i.test(str)||/=\r?\n/.test(str); }
+
+function vDecodeTracking(href) {
+  if (!href) return '';
+  const m = href.match(/link\.slate\.com\/(?:click|view)\/[^/]+\/([A-Za-z0-9+/=_-]+)/);
+  if (m) { try { let b=m[1].replace(/-/g,'+').replace(/_/g,'/'); while(b.length%4) b+='='; return atob(b); } catch(_){} }
+  return href;
+}
+function vResolve(href)       { return vDecodeTracking(href||'').replace(/\/$/,''); }
+function vIsSlateHome(url)    { try { const u=new URL(url.startsWith('http')?url:'https://'+url); return (u.hostname==='slate.com'||u.hostname==='www.slate.com')&&(u.pathname==='/'||u.pathname===''); } catch(_){return false;} }
+function vIsValidUrl(s)       { return s.startsWith('http://')||s.startsWith('https://')||s.startsWith('mailto:')||s.startsWith('tel:')||s.startsWith('//'); }
+function vClip(s,n=110)       { s=String(s); return s.length>n?s.slice(0,n)+'…':s; }
+function vCtx(str,idx,r=65)   { const s=Math.max(0,idx-r),e=Math.min(str.length,idx+r); return (s>0?'…':'')+str.slice(s,e).trim()+(e<str.length?'…':''); }
+
+// ── Check functions ────────────────────────────────────────
+
+function vCheckTK(html, doc) {
+  const issues=[], seen=new Set();
+  const body = doc.body ? doc.body.textContent : '';
+  const re=/\btk(?:tk)*s?\b/gi; let m;
+  while ((m=re.exec(body))!==null) {
+    const ctx=body.slice(Math.max(0,m.index-50),m.index+70).replace(/\s+/g,' ').trim();
+    const key=ctx.slice(0,60);
+    if (!seen.has(key)) { seen.add(key); issues.push({title:`"${m[0]}" in visible text`,code:`…${ctx}…`}); }
+  }
+  if (doc.querySelectorAll) {
+    for (const el of doc.querySelectorAll('[alt],[title]')) {
+      for (const attr of ['alt','title']) {
+        const v=el.getAttribute(attr);
+        if (v&&/\btk\b/i.test(v)&&!seen.has(attr+v)) { seen.add(attr+v); issues.push({title:`"tk" in ${attr}: "${v}"`,code:`${attr}="${v}"`}); }
+      }
+    }
+  }
+  return issues.length
+    ? {status:'error',title:'TK Placeholder Text Found',sub:`${issues.length} instance(s) detected`,issues}
+    : {status:'pass',title:'No TK Placeholders',sub:'No "tk" strings found'};
+}
+
+function vCheckClay(html, doc) {
+  const urls=[]; const re=/https:\/\/slate\.com\/_pages\/[^\s"'<>]*/gi; let m;
+  while ((m=re.exec(html))!==null) urls.push(m[0]);
+  return urls.length
+    ? {status:'warning',title:'Clay URLs in Template',sub:`${urls.length} URL(s) starting with slate.com/_pages/`,clay:true,issues:urls.map(u=>({title:u,code:null}))}
+    : {status:'pass',title:'No Clay URLs',sub:'No slate.com/_pages/ URLs found'};
+}
+
+function vCheckContinueReading(html, doc) {
+  if (!doc.querySelectorAll) return {status:'pass',title:'"Continue Reading" Not Found',sub:''};
+  const issues=[]; let found=false;
+  for (const a of doc.querySelectorAll('a[href]')) {
+    if (/continue\s+reading\s+on\s+slate/i.test(a.textContent.trim())) {
+      found=true;
+      const dest=vResolve(a.getAttribute('href')||'');
+      if (!dest||vIsSlateHome(dest))
+        issues.push({title:'"Continue reading on Slate" links to homepage, not an article',code:`href decodes to: ${dest||'(empty)'}`});
+    }
+  }
+  if (!found) return {status:'pass',title:'"Continue Reading on Slate" Not Present',sub:''};
+  return issues.length
+    ? {status:'error',title:'"Continue Reading on Slate" Links to Homepage',sub:'Should point to a specific article URL',issues}
+    : {status:'pass',title:'"Continue Reading on Slate" Link OK',sub:'Links to a specific article'};
+}
+
+function vCheckAlt(html, doc) {
+  if (!doc.querySelectorAll) return {status:'warning',title:'Alt Text Check Skipped',sub:''};
+  const imgs=Array.from(doc.querySelectorAll('img'));
+  if (!imgs.length) return {status:'pass',title:'No Images Found',sub:''};
+  const issues=[];
+  for (const img of imgs) {
+    const src=vClip(img.getAttribute('src')||'',55), alt=img.getAttribute('alt');
+    if (alt===null)              issues.push({sev:'error',title:'Missing alt attribute',code:`<img src="${src}" [no alt]>`});
+    else if (/\btk\b/i.test(alt)) issues.push({sev:'error',title:`alt contains "tk": "${alt}"`,code:`src="${src}"`});
+    // empty alt="" is valid for decorative images — skip
+  }
+  const errs=issues.filter(i=>i.sev==='error');
+  if (errs.length) return {status:'error',title:'Alt Text Issues',sub:`${errs.length} error(s) in ${imgs.length} images`,issues};
+  return {status:'pass',title:'Alt Text OK',sub:`All ${imgs.length} images have alt text or are marked decorative`};
+}
+
+function vCheckURLs(html, doc) {
+  if (!doc.querySelectorAll) return {status:'warning',title:'URL Check Skipped',sub:''};
+  const issues=[];
+  const SAILTHRU=/^\{[a-z_]+\}$/i;
+  for (const a of doc.querySelectorAll('a')) {
+    const href=a.getAttribute('href'), text=vClip(a.textContent.trim(),50);
+    if (href===null||href.trim()==='') { issues.push({sev:'error',title:`Empty href: "${text||'(no text)'}"`,code:`<a href="">…</a>`}); continue; }
+    if (SAILTHRU.test(href.trim())) continue;
+    if (href==='#') { issues.push({sev:'error',title:`URL needs to be filled out — href="#": "${text}"`,code:`<a href="#">${text}</a>`}); continue; }
+    if (!vIsValidUrl(href)) {
+      const looksText=/\s(the|is|are|was|for|and|but|of|to|in|at|on|with|about|this)\s/i.test(href);
+      issues.push({sev:'error',title:`href not a valid URL${looksText?' — looks like text was pasted':''}: "${text}"`,code:`href="${vClip(href,90)}"`}); continue;
+    }
+    const dest=vResolve(href);
+    if (/^https?:\/\/(www\.)?slate\.com\/?#/.test(dest))
+      issues.push({sev:'error',title:`URL needs to be filled out — links to slate.com/#: "${text}"`,code:`href decodes to: ${vClip(dest,90)}`});
+  }
+  for (const img of doc.querySelectorAll('img')) {
+    const src=img.getAttribute('src')||'';
+    if (!src.trim()) issues.push({sev:'error',title:'Image with empty src',code:`<img src="" alt="${img.getAttribute('alt')||''}">`});
+  }
+  const errs=issues.filter(i=>i.sev==='error');
+  if (errs.length||issues.length) return {status:errs.length?'error':'warning',title:'URL Issues Found',sub:`${errs.length} error(s), ${issues.filter(i=>i.sev==='warn').length} warning(s) — live reachability not checked`,issues};
+  return {status:'pass',title:'URLs Look OK',sub:'No empty or malformed URLs detected'};
+}
+
+function vCompareLinks(imgA, headA, issues) {
+  if (!imgA||!headA) return;
+  const iH=imgA.getAttribute('href')||'', hH=headA.getAttribute('href')||'';
+  const iD=vResolve(iH), hD=vResolve(hH);
+  const ht=vClip(headA.textContent.trim(),60);
+  if (!iD||!hD) return;
+  if (!vIsValidUrl(iD)||!vIsValidUrl(hD)) {
+    if (!vIsValidUrl(hD)) issues.push({sev:'error',title:`Headline href not a valid URL: "${ht}"`,code:`href="${vClip(hH,90)}"`});
+    if (!vIsValidUrl(iD)) issues.push({sev:'error',title:`Image href not valid near: "${ht}"`,code:`href="${vClip(iH,90)}"`});
+    return;
+  }
+  if (iD!==hD) issues.push({sev:'error',title:`Image and headline link to different pages: "${ht}"`,code:`Image    → ${vClip(iD,85)}\nHeadline → ${vClip(hD,85)}`});
+}
+
+function vCheckMatching(html, doc) {
+  if (!doc.querySelectorAll) return {status:'warning',title:'Matching Check Skipped',sub:''};
+  const issues=[];
+  for (const row of doc.querySelectorAll('.row-content')) {
+    const c1=row.querySelector('.column-1'), c2=row.querySelector('.column-2');
+    if (c1&&c2) vCompareLinks(c1.querySelector('a[href]'),c2.querySelector('h1 a[href], h2 a[href]'),issues);
+  }
+  for (const block of doc.querySelectorAll('.row-content.stack, .row-content')) {
+    if (block.querySelector('.column-2')) continue;
+    const iL=block.querySelector('.image_block a[href]'), hL=block.querySelector('.heading_block a[href], h1 a[href]');
+    if (iL&&hL&&iL!==hL) vCompareLinks(iL,hL,issues);
+  }
+  return issues.length
+    ? {status:'error',title:'Mismatched Image/Headline URLs',sub:`${issues.length} pair(s) with mismatched links`,issues}
+    : {status:'pass',title:'Image/Headline URLs Match',sub:'All detected pairs link to the same destination'};
+}
+
+function vCheckHTML(html, doc) {
+  const issues=[];
+  const stripped=html.replace(/=\s*"[^"]*"/g,'=""').replace(/=\s*'[^']*'/g,"=''");
+  const unquoted=/\b(href|src|action)=(?!["'\s>])[^\s>]+/g;
+  let m; const uSeen=new Set();
+  while ((m=unquoted.exec(stripped))!==null) {
+    const ctx=vClip(vCtx(html,m.index,50));
+    if (!uSeen.has(ctx)) { uSeen.add(ctx); issues.push({sev:'error',title:`Attribute without quotes: ${m[1]}=…`,code:ctx}); }
+    if (issues.length>=8) break;
+  }
+  if (doc.querySelectorAll) {
+    for (const a of doc.querySelectorAll('a[href]')) {
+      const href=a.getAttribute('href')||'';
+      if (/\s(the|is|are|was|for|and|but|of|this)\s/i.test(href)&&!vIsValidUrl(href))
+        issues.push({sev:'error',title:'href looks like text content, not a URL',code:`href="${vClip(href,85)}"`});
+    }
+    const idC={};
+    for (const el of doc.querySelectorAll('[id]')) { const id=el.getAttribute('id'); if(id) idC[id]=(idC[id]||0)+1; }
+    const dupes=Object.entries(idC).filter(([,n])=>n>1);
+    if (dupes.length) issues.push({sev:'warn',title:`Duplicate IDs: ${dupes.map(([id])=>id).join(', ')}`,code:'Duplicate IDs can cause rendering issues'});
+  }
+  const opens=(html.match(/</g)||[]).length, closes=(html.match(/>/g)||[]).length;
+  if (Math.abs(opens-closes)>4) issues.push({sev:'warn',title:`Angle bracket imbalance: ${opens} '<' vs ${closes} '>'`,code:'May indicate an unclosed tag'});
+  const errs=issues.filter(i=>i.sev==='error');
+  if (errs.length||issues.length) return {status:errs.length?'error':'warning',title:'HTML Issues Detected',sub:`${errs.length} error(s), ${issues.filter(i=>i.sev==='warn').length} warning(s)`,issues};
+  return {status:'pass',title:'HTML Appears Valid',sub:'No obvious structural errors'};
+}
+
+function vCheckBestPractices(html, doc) {
+  const issues=[];
+  if (!html.trim().toLowerCase().startsWith('<!doctype')) issues.push({sev:'warn',title:'Missing DOCTYPE',code:'<!DOCTYPE html>'});
+  if (!/<meta[^>]+charset/i.test(html)) issues.push({sev:'warn',title:'Missing charset meta tag',code:'<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'});
+  if (!/<meta[^>]+viewport/i.test(html)) issues.push({sev:'warn',title:'Missing viewport meta',code:'<meta name="viewport" content="width=device-width,initial-scale=1">'});
+  if (doc.querySelectorAll) {
+    const ext=doc.querySelectorAll('link[rel="stylesheet"]');
+    if (ext.length) issues.push({sev:'error',title:`External stylesheet found (${ext.length}) — not supported in email`,code:'Use <style> block or inline styles'});
+    for (const a of doc.querySelectorAll('a[href^="javascript:"]'))
+      issues.push({sev:'error',title:'JavaScript href — will not work in email',code:`href="${a.getAttribute('href')}"`});
+  }
+  if (!/unsubscribe/i.test(html)) issues.push({sev:'error',title:'No unsubscribe link detected',code:'CAN-SPAM requires an unsubscribe mechanism'});
+  if (!/\d+\s+\w+.*(street|st\b|avenue|ave\b|road|rd\b|blvd|boulevard|center|floor)/i.test(html))
+    issues.push({sev:'warn',title:'No physical mailing address detected',code:'CAN-SPAM requires a postal address'});
+  const errs=issues.filter(i=>i.sev==='error');
+  if (errs.length||issues.length) return {status:errs.length?'error':'warning',title:'Best Practice Issues',sub:`${errs.length} error(s), ${issues.filter(i=>i.sev==='warn').length} recommendation(s)`,issues};
+  return {status:'pass',title:'Best Practices OK',sub:'No issues found'};
+}
+
+// ── Run + render ───────────────────────────────────────────
+
+function runEmailValidation() {
+  const raw = document.getElementById('validator-input').value;
+  if (!raw.trim()) { alert('Paste your email HTML first.'); return; }
+  const wasQP = vLooksQP(raw);
+  const html  = wasQP ? vDecodeQP(raw) : raw;
+  document.getElementById('qp-tag').textContent = wasQP ? '✓ QP decoded' : '';
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const checks = [vCheckTK, vCheckClay, vCheckContinueReading, vCheckAlt, vCheckURLs, vCheckMatching, vCheckHTML, vCheckBestPractices];
+  const results = checks.map(fn => { try { return fn(html,doc); } catch(e) { return {status:'warning',title:'Check error: '+fn.name,sub:e.message,issues:[{sev:'warn',title:e.message,code:e.stack}]}; } });
+  renderValidation(results);
+}
+
+function renderValidation(results) {
+  const panel   = document.getElementById('v-results');
+  const errors  = results.filter(r=>r.status==='error').length;
+  const warnings= results.filter(r=>r.status==='warning').length;
+  const passes  = results.filter(r=>r.status==='pass').length;
+  let icon='✅', color='#1a6b2e', text='No issues — email looks clean!';
+  if (errors)   { icon='❌'; color='#a0001e'; text=`${errors} error(s) need attention`; }
+  else if (warnings) { icon='⚠️'; color='#7d5a00'; text=`${warnings} warning(s) to review`; }
+  let html = `<div class="v-summary">
+    <span class="v-summary-icon">${icon}</span>
+    <div>
+      <div class="v-summary-main" style="color:${color}">${text}</div>
+      <div class="v-summary-sub">${results.length} checks run</div>
+      <div class="v-pills">
+        ${errors  ? `<span class="v-pill v-pill-error">${errors} error${errors>1?'s':''}</span>` : ''}
+        ${warnings? `<span class="v-pill v-pill-warn">${warnings} warning${warnings>1?'s':''}</span>` : ''}
+        ${passes  ? `<span class="v-pill v-pill-pass">${passes} passed</span>` : ''}
+      </div>
+    </div>
+  </div>`;
+  results.forEach((r, i) => {
+    const ico = r.status==='error'?'❌':r.status==='warning'?'⚠️':'✅';
+    const hasIssues = r.issues && r.issues.length > 0;
+    const autoOpen  = r.status !== 'pass' && hasIssues;
+    html += `<div class="v-check">
+      <div class="v-check-header" onclick="toggleVCard(${i})">
+        <span class="v-check-icon">${ico}</span>
+        <div class="v-check-info">
+          <div class="v-check-title">${escHtml(r.title)}</div>
+          <div class="v-check-sub">${escHtml(r.sub||'')}</div>
+        </div>
+        ${hasIssues?`<span class="v-check-arrow${autoOpen?' open':''}" id="varrow-${i}">▼</span>`:''}
+      </div>`;
+    if (hasIssues) {
+      html += `<div class="v-check-body${autoOpen?' open':''}" id="vbody-${i}">`;
+      if (r.clay) html += `<div class="v-clay-header">⚠️ Clay URLs found:</div>`;
+      for (const issue of r.issues) {
+        html += `<div class="v-issue${issue.sev==='warn'?' warn':''}">
+          <div class="v-issue-title">${escHtml(issue.title)}</div>
+          ${issue.code?`<div class="v-issue-code">${escHtml(issue.code)}</div>`:''}
+        </div>`;
+      }
+      html += `</div>`;
+    }
+    html += `</div>`;
+  });
+  panel.innerHTML = html;
+}
+
+function toggleVCard(i) {
+  const body = document.getElementById(`vbody-${i}`);
+  const arrow= document.getElementById(`varrow-${i}`);
+  if (!body) return;
+  const open = body.classList.toggle('open');
+  if (arrow) arrow.classList.toggle('open', open);
+}
+
+function clearValidator() {
+  document.getElementById('validator-input').value = '';
+  document.getElementById('qp-tag').textContent = '';
+  document.getElementById('v-results').innerHTML = '<div class="v-empty">Paste email HTML on the left and click Validate</div>';
+}
+
+document.getElementById('validator-input').addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); runEmailValidation(); }
+});
+
 </script>
 </body>
 </html>
