@@ -154,7 +154,7 @@ function sanitizeInline(node) {
   if (tag === 'a') {
     const href = node.getAttribute('href') || '';
     if (href && !href.startsWith('javascript')) {
-      return `<a href="${href}" style="color:#ff0e50;text-decoration:underline;">${kids}</a>`;
+      return `<a href="${href}" style="color:#ff0e50;text-decoration:underline;" target="_blank">${kids}</a>`;
     }
     return kids;
   }
@@ -299,7 +299,7 @@ function serializeNode(node) {
 function buildTable(innerHtml) {
   return `  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: Verdana, Geneva, sans-serif; margin-bottom: 20px;">
     <tr>
-      <td width="24" valign="top" style="font-size: 15px; font-weight: 700; color: #111; padding-top: 2px; text-align: left;"><img src="${BULLET_IMG_SRC}" width="12px" /></td>
+      <td width="24" valign="top" style="font-size: 15px; font-weight: 700; color: #111; padding-top: 2px; text-align: left;"><img src="${BULLET_IMG_SRC}" width="12px" alt="" /></td>
       <td style="font-size: 14px; color: #111; line-height: 1.5; text-align: left;">
         ${innerHtml}
       </td>
