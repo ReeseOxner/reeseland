@@ -208,12 +208,8 @@
             <label class="field-label" for="byl-headshot">Headshot URL</label>
             <input type="url" id="byl-headshot" class="field-input" placeholder="https://media.sailthru.com/…">
           </div>
-          <div class="form-group">
-            <label class="field-label" for="byl-date">Date</label>
-            <input type="text" id="byl-date" class="field-input" placeholder="6-25-26">
-          </div>
         </div>
-        <div class="hint">Author URL auto-fills from name. Date defaults to today.</div>
+        <div class="hint">Author URL auto-fills from name. Date renders as <code style="background:#f0e8f0;padding:1px 4px;border-radius:2px;font-size:10px">{date('M-d-yy')}</code> — Sailthru fills this in at send time.</div>
       </div>
 
       <!-- CONTINUE READING TAB -->
@@ -406,11 +402,11 @@ function applyLink() {
   restoreRange();
   const anchor = getSelectedAnchor();
   const sel = window.getSelection();
-  if (anchor) { anchor.href = normalizeUrl(url); anchor.style.color = '#ff0e50'; anchor.style.textDecoration = 'underline'; }
+  if (anchor) { anchor.href = normalizeUrl(url); anchor.target = '_blank'; anchor.style.color = '#ff0e50'; anchor.style.textDecoration = 'underline'; }
   else if (sel && !sel.isCollapsed) {
     document.execCommand('createLink', false, normalizeUrl(url));
     const a = getSelectedAnchor();
-    if (a) { a.style.color = '#ff0e50'; a.style.textDecoration = 'underline'; }
+    if (a) { a.target = '_blank'; a.style.color = '#ff0e50'; a.style.textDecoration = 'underline'; }
   }
   closeLinkRow(); generateHTML();
 }
@@ -422,7 +418,7 @@ function serializeNode(node) {
   const tag = node.tagName.toLowerCase();
   const kids = Array.from(node.childNodes).map(serializeNode).join('');
   if (tag === 'br') return '';
-  if (tag === 'a')  return `<a href="${node.getAttribute('href')||'#'}" style="color: #ff0e50; text-decoration: underline;">${kids}</a>`;
+  if (tag === 'a')  return `<a href="${node.getAttribute('href')||'#'}" style="color: #ff0e50; text-decoration: underline;" target="_blank">${kids}</a>`;
   if (tag === 'strong' || tag === 'b') return `<strong>${kids}</strong>`;
   if (tag === 'em'     || tag === 'i') return `<em>${kids}</em>`;
   if (tag === 'u') return `<u>${kids}</u>`;
@@ -642,7 +638,7 @@ function generateByline() {
   const name     = document.getElementById('byl-name').value.trim();
   const url      = document.getElementById('byl-url').value.trim() || (name ? `https://slate.com/author/${nameToSlug(name)}` : 'https://slate.com/author/');
   const headshot = document.getElementById('byl-headshot').value.trim() || 'https://media.sailthru.com/fss/ehlu0k/0d95f35a-6922-4612-98f5-2609f8818079/77891eed-b5f0-4330-bb63-eda9e7852b8e-modified.png';
-  const date     = document.getElementById('byl-date').value.trim() || getTodayFormatted();
+  const date     = "{date('M-d-yy')}";
   if (!name && !document.getElementById('byl-url').value.trim()) { document.getElementById('html-out').value = ''; return; }
   document.getElementById('html-out').value =
 `<div style="padding: 0 10px;">
@@ -669,8 +665,6 @@ document.getElementById('byl-name').addEventListener('input', function() {
 });
 document.getElementById('byl-url').addEventListener('input', function() { bylUrlEdited = !!this.value.trim(); generateByline(); });
 document.getElementById('byl-headshot').addEventListener('input', generateByline);
-document.getElementById('byl-date').addEventListener('input', generateByline);
-document.getElementById('byl-date').value = getTodayFormatted();
 
 
 // ═══════════════════════════════════════════════════════════
@@ -712,7 +706,8 @@ function vLooksQP(str)   { return /=3[Dd]/i.test(str)||/=[0-9A-F]{2}/i.test(str)
 
 function vDecodeTracking(href) {
   if (!href) return '';
-  const m = href.match(/link\.slate\.com\/(?:click|view)\/[^/]+\/([A-Za-z0-9+/=_-]+)/);
+  // Capture only up to the next '/' — the segment after is the Sailthru tracking hash, not part of the base64
+  const m = href.match(/link\.slate\.com\/(?:click|view)\/[^/]+\/([A-Za-z0-9+=_-]+)/);
   if (m) { try { let b=m[1].replace(/-/g,'+').replace(/_/g,'/'); while(b.length%4) b+='='; return atob(b); } catch(_){} }
   return href;
 }
@@ -793,7 +788,11 @@ function vCheckURLs(html, doc) {
   const SAILTHRU=/^\{[a-z_]+\}$/i;
   for (const a of doc.querySelectorAll('a')) {
     const href=a.getAttribute('href'), text=vClip(a.textContent.trim(),50);
-    if (href===null||href.trim()==='') { issues.push({sev:'error',title:`Empty href: "${text||'(no text)'}"`,code:`<a href="">…</a>`}); continue; }
+    if (href===null||href.trim()==='') {
+      // Skip tracking pixels and hidden elements (empty href + no visible text)
+      if (!text) continue;
+      issues.push({sev:'error',title:`Empty href: "${text}"`,code:`<a href="">…</a>`}); continue;
+    }
     if (SAILTHRU.test(href.trim())) continue;
     if (href==='#') { issues.push({sev:'error',title:`URL needs to be filled out — href="#": "${text}"`,code:`<a href="#">${text}</a>`}); continue; }
     if (!vIsValidUrl(href)) {
@@ -874,7 +873,7 @@ function vCheckHTML(html, doc) {
 
 function vCheckBestPractices(html, doc) {
   const issues=[];
-  if (!html.trim().toLowerCase().startsWith('<!doctype')) issues.push({sev:'warn',title:'Missing DOCTYPE',code:'<!DOCTYPE html>'});
+  if (!/<\!doctype/i.test(html)) issues.push({sev:'warn',title:'Missing DOCTYPE',code:'<!DOCTYPE html>'});
   if (!/<meta[^>]+charset/i.test(html)) issues.push({sev:'warn',title:'Missing charset meta tag',code:'<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'});
   if (!/<meta[^>]+viewport/i.test(html)) issues.push({sev:'warn',title:'Missing viewport meta',code:'<meta name="viewport" content="width=device-width,initial-scale=1">'});
   if (doc.querySelectorAll) {
