@@ -1,0 +1,211 @@
+/* GLOBAL STYLES
+-------------------------------------------------- */
+/* Padding below the footer and lighter body text */
+
+@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:900&display=swap');
+
+.navbar-brand {
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 2.55rem;
+}
+
+.navbar {
+  /* default fallback
+  background: rgb(255, 255, 255) transparent;
+  /* nice browsers
+  background: rgba(255, 255, 255, 0.8);*/
+
+background: transparent;
+}
+
+.navbar a {
+  color: #FFF !important;
+  margin-right: 20px;
+}
+
+.navbar a:hover {
+  color: rgba(0,0,0,.5) !important;
+}
+
+.navbar .scrolled {
+  background-color: #fff !important;
+  transition: background-color 200ms linear;
+}
+
+
+.hero-display .jumbotron {
+  display: flex;
+}
+
+.hero-display .jumbotron .display-4, .hero-display .jumbotron .lead {
+  text-align: center;
+  color: #fff;
+
+}
+
+.hero-display .jumbotron .display-4 {
+  font-family: 'Source Sans Pro', sans-serif;
+}
+
+.hero-display .jumbotron .container {
+  display: inline-block;
+   align-self: flex-end;
+   /* default fallback */
+background: rgb(45, 45, 45) transparent;
+/* nice browsers */
+background: rgba(45, 45, 45, 0.7);
+/* IE 6/7 */
+filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#000000, endColorstr=#000000);
+/* IE8 */
+-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#000000, endColorstr=#000000  )";
+
+}
+
+body {
+  padding-top: 0;
+  padding-bottom: 3rem;
+  color: #5a5a5a;
+}
+
+.requestQuoteButton {
+  margin: 0 auto;
+  text-align: center;
+  padding: 30px;
+}
+
+#big-image {
+  background-image:url("../images/MSW.png");
+  height:650px;
+  background-size: cover;
+}
+
+.jumbotron {
+  margin-bottom: 0 !important;
+}
+
+#secondaryNav {
+  margin-bottom: 2em;
+  border-bottom: 1px solid #707070;
+  background-color: #000 !important;
+}
+
+.nav-fill {
+  background-color: #333;
+}
+
+.nav-fill a {
+  color: #fff;
+}
+
+
+
+/* CUSTOMIZE THE CAROUSEL
+-------------------------------------------------- */
+
+/* Carousel base class */
+.carousel {
+}
+/* Since positioning the image, we need to help out the caption */
+.carousel-caption {
+  bottom: 3rem;
+  z-index: 10;
+}
+
+/* Declare heights because of positioning of img element */
+.carousel-item {
+  max-height: 32rem;
+  background-color: #777;
+}
+.carousel-item > img {
+  min-width: 100%;
+}
+
+
+/* MARKETING CONTENT
+-------------------------------------------------- */
+
+/* Center align the text within the three columns below the carousel */
+.marketing .col-lg-4 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.marketing h2 {
+  font-weight: 400;
+}
+.marketing .col-lg-4 p {
+  margin-right: .75rem;
+  margin-left: .75rem;
+}
+
+
+/* Featurettes
+------------------------- */
+
+.featurette-divider {
+  margin: 5rem 0; /* Space out the Bootstrap <hr> more */
+}
+
+/* Thin out the marketing headings */
+.featurette-heading {
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -.05rem;
+}
+
+/* Form */
+
+.client-form {
+  padding:20px;
+}
+
+
+/* RESPONSIVE CSS
+-------------------------------------------------- */
+
+@media (min-width: 40em) {
+  /* Bump up size of carousel content */
+  .carousel-caption p {
+    margin-bottom: 1.25rem;
+    font-size: 1.25rem;
+    line-height: 1.4;
+  }
+
+  .featurette-heading {
+    font-size: 50px;
+  }
+}
+
+@media (min-width: 62em) {
+  .featurette-heading {
+    margin-top: 7rem;
+  }
+}
+
+
+.scrolled{
+  background: rgb(0, 0, 0) transparent;
+  background: rgba(30, 30, 30, 0.9);
+  transition: 0.3s;
+}
+
+
+a.dropdown-item {
+  color:#000 !important;
+}
+
+.navbar-toggler {
+  background-color:#fff;
+  background: rgb(255, 255, 255) transparent;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+
+/* Footer CSS */
+
+footer {
+}
+
+.nolinkstyle {
+  color: #fff !important;
+  text-decoration: none !important;
+}
