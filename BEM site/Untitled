@@ -1,0 +1,16 @@
+<option value="" selected="selected">Select One</option>
+<option value="Student" >Student</option>
+<option value="Faculty" >Faculty</option>
+<option value="Staff" >Staff</option>
+<option value="Alumni" >Alumni</option>
+<option value="Other" >Other</option>
+
+<option value=Reporter">Reporter<option>
+<option value="Photographer">Photographer<option>
+<option value="Designer">Designer<option>
+<option value="Copy editor">Copy editor<option>
+<option value="Social media assistant">Social media assistant<option>
+<option value="Newsletter manager">Newsletter manager<option>
+<option value="Ad sales rep">Ads sales rep<option>
+<option value="Cartoonist">Cartoonist<option>
+<option value="Marketing rep">Marketing rep<option>

@@ -1,0 +1,35 @@
+<?php
+// acquire shared info from other files
+include("dbconn.inc.php"); // database connection
+// make database connection
+$conn = dbConnect();
+
+function search ($term)
+{
+	$searchResults = "SELECT * FROM `Links` WHERE `AnchorText` LIKE '%".$term."%'";
+	print $searchResults;
+}
+
+$term = $_POST['search'];
+
+
+?>
+<html>
+<head>
+  <title>Search</title>
+  <style>
+    body {width: 70%; margin: auto;}
+    form {margin: 0.5em; padding: 0.5em;}
+  </style>
+</head>
+<body>
+  <form action="" method="post">
+    Please provide the search term: <input type="text" name="search" size="6">
+    <br>
+    <input type="submit" name="submit" value="submit">
+  </form>
+
+  <hr>
+  <?php echo $response ?>
+</body>
+</html>
